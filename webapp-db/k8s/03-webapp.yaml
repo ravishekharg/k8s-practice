@@ -17,7 +17,7 @@ spec:
         - name: ghcr-pull # created by hand, not stored in Git (see README)
       containers:
         - name: webapp
-          image: ghcr.io/ravishekharg/webapp:sha-d3edbe6 # replaced with ghcr.io/<owner>/webapp:sha-<commit> by CI on every push to main
+          image: ghcr.io/ravishekharg/webapp:sha-d34e002 # replaced with ghcr.io/<owner>/webapp:sha-<commit> by CI on every push to main
           imagePullPolicy: IfNotPresent
           env:
             - name: DB_HOST
