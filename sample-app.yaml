@@ -1,0 +1,51 @@
+# Sample app for practicing Kubernetes on the local kind cluster.
+# Apply:  kubectl apply -f sample-app.yaml   (or right-click > Kubernetes: Apply in VS Code)
+# Open:   kubectl -n demo port-forward svc/hello 8080:80   then visit http://localhost:8080
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello
+  namespace: demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hello
+  template:
+    metadata:
+      labels:
+        app: hello
+    spec:
+      containers:
+        - name: hello
+          image: nginxdemos/hello:plain-text
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello
+  namespace: demo
+spec:
+  selector:
+    app: hello
+  ports:
+    - port: 80
+      targetPort: 80
