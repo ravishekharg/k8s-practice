@@ -34,8 +34,8 @@ jobs:
       run:
         working-directory: webapp-db/app
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: webapp-db/app/go.mod
           cache-dependency-path: webapp-db/app/go.sum
@@ -46,7 +46,7 @@ jobs:
   validate-manifests:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: kubeconform
         run: |
           curl -sSL https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz | tar xz
@@ -60,7 +60,7 @@ jobs:
       contents: write # commit the new image tag
       packages: write # push to ghcr.io
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Image tag
         id: tag
         run: echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
