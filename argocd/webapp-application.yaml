@@ -1,0 +1,22 @@
+# Argo CD keeps the webapp namespace in sync with webapp-db/k8s on the main branch.
+# Apply once: kubectl apply -f argocd/webapp-application.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: webapp
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ravishekharg/k8s-practice.git
+    targetRevision: main
+    path: webapp-db/k8s
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: webapp
+  syncPolicy:
+    automated:
+      prune: true # delete resources removed from Git
+      selfHeal: true # undo manual changes made with kubectl
+    syncOptions:
+      - CreateNamespace=true

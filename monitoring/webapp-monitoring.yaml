@@ -1,0 +1,47 @@
+# Tells Prometheus to scrape the web app's /metrics endpoint, and defines practice alerts.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: webapp
+  namespace: webapp
+spec:
+  selector:
+    matchLabels:
+      app: webapp
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: webapp-alerts
+  namespace: webapp
+spec:
+  groups:
+    - name: webapp
+      rules:
+        - alert: WebappDown
+          expr: sum(up{job="webapp"}) == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: No webapp pods are being scraped successfully.
+        - alert: WebappHighErrorRate
+          expr: |
+            sum(rate(webapp_http_requests_total{code=~"5.."}[5m]))
+              / sum(rate(webapp_http_requests_total[5m])) > 0.05
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: More than 5% of webapp requests are failing.
+        - alert: PostgresPodNotReady
+          expr: kube_pod_status_ready{namespace="webapp", pod="postgres-0", condition="true"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: The postgres-0 pod is not ready.

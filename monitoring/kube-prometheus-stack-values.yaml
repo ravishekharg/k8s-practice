@@ -1,0 +1,61 @@
+# kube-prometheus-stack tuned for a single-node kind cluster on a laptop.
+# Install: helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+#            -n monitoring --create-namespace -f kube-prometheus-stack-values.yaml
+#
+# UIs (via the Traefik ingress on localhost:8080):
+#   http://grafana.localhost:8080       admin / admin-test-password
+#   http://prometheus.localhost:8080
+#   http://alertmanager.localhost:8080
+
+grafana:
+  adminPassword: admin-test-password
+  persistence:
+    enabled: false
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts: [grafana.localhost]
+  resources:
+    requests: { cpu: 50m, memory: 128Mi }
+    limits: { memory: 256Mi }
+
+prometheus:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts: [prometheus.localhost]
+  prometheusSpec:
+    retention: 2d
+    scrapeInterval: 30s
+    # Pick up ServiceMonitors / PodMonitors / rules from every namespace, not only this release's.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests: { cpu: 100m, memory: 400Mi }
+      limits: { memory: 1Gi }
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+
+alertmanager:
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hosts: [alertmanager.localhost]
+  alertmanagerSpec:
+    resources:
+      requests: { cpu: 10m, memory: 32Mi }
+      limits: { memory: 128Mi }
+
+# kind's control-plane components listen on 127.0.0.1 only, so Prometheus can't scrape them.
+# Disabling these avoids permanently-down targets and false alerts.
+kubeControllerManager: { enabled: false }
+kubeScheduler: { enabled: false }
+kubeEtcd: { enabled: false }
+kubeProxy: { enabled: false }

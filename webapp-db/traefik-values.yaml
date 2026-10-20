@@ -1,0 +1,26 @@
+# Traefik ingress controller for kind: listens on the node's ports 80/443,
+# which kind-config.yaml maps to localhost:8080/8443 on the Mac.
+# Install: helm upgrade --install traefik traefik/traefik -n traefik --create-namespace -f traefik-values.yaml
+deployment:
+  replicas: 1
+nodeSelector:
+  ingress-ready: "true"
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+ports:
+  web:
+    hostPort: 80
+  websecure:
+    hostPort: 443
+service:
+  type: ClusterIP
+ingressClass:
+  enabled: true
+  isDefaultClass: true
+providers:
+  kubernetesIngress:
+    enabled: true
+  kubernetesGateway:
+    enabled: false
